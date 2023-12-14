@@ -68,6 +68,7 @@ export default function NameDialog() {
     // not null or undefined.
     params.set("username", username!);
     params.set("handle", handle!);
+    params.set("searchTerm", "");
     router.push(`${pathname}?${params.toString()}`);
     setDialogOpen(false);
 
@@ -107,7 +108,7 @@ export default function NameDialog() {
               Name
             </Label>
             <Input
-              placeholder="Web Programming"
+              placeholder="your username"
               defaultValue={searchParams.get("username") ?? ""}
               className={cn(usernameError && "border-red-500", "col-span-3")}
               ref={usernameInputRef}
@@ -127,7 +128,7 @@ export default function NameDialog() {
             <div className="col-span-3 flex items-center gap-2">
               <span>@</span>
               <Input
-                placeholder="web.prog"
+                placeholder="your handle (e.g. nobody.qq)"
                 defaultValue={searchParams.get("handle") ?? ""}
                 className={cn(handleError && "border-red-500")}
                 ref={handleInputRef}
@@ -143,7 +144,7 @@ export default function NameDialog() {
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleSave}>start</Button>
+          <Button onClick={handleSave}>Start</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

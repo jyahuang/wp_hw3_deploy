@@ -4,20 +4,20 @@ import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
-import { likesTable } from "@/db/schema";
+import { joinsTable } from "@/db/schema";
 
-const likeTweetRequestSchema = z.object({
-  tweetId: z.number().positive(),
+const JoinEventRequestSchema = z.object({
+  eventId: z.number().positive(),
   userHandle: z.string().min(1).max(50),
 });
 
-type LikeTweetRequest = z.infer<typeof likeTweetRequestSchema>;
+type JoinEventRequest = z.infer<typeof JoinEventRequestSchema>;
 
 export async function GET(request: NextRequest) {
   const data = await request.json();
 
   try {
-    likeTweetRequestSchema.parse(data);
+    JoinEventRequestSchema.parse(data);
   } catch (error) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   // the `as` keyword is a type assertion, this tells typescript
   // that we know what we're doing and that the data is of type LikeTweetRequest.
   // This is safe now because we've already validated the data with zod.
-  const { tweetId, userHandle } = data as LikeTweetRequest;
+  const { eventId, userHandle } = data as JoinEventRequest;
 
   try {
     // This is a common pattern to check if a row exists
@@ -39,17 +39,17 @@ export async function GET(request: NextRequest) {
     // You can also do this with count(*) and check if the count is greater than 0.
     const [exist] = await db
       .select({ dummy: sql`1` })
-      .from(likesTable)
+      .from(joinsTable)
       .where(
         and(
-          eq(likesTable.tweetId, tweetId),
-          eq(likesTable.userHandle, userHandle),
+          eq(joinsTable.eventId, eventId),
+          eq(joinsTable.userHandle, userHandle),
         ),
       )
       .execute();
     // The NextResponse object is a easy to use API to handle responses.
     // IMHO, it's more concise than the express API.
-    return NextResponse.json({ liked: Boolean(exist) }, { status: 200 });
+    return NextResponse.json({ joined: Boolean(exist) }, { status: 200 });
   } catch (error) {
     return NextResponse.json(
       { error: "Something went wrong" },
@@ -62,18 +62,18 @@ export async function POST(request: NextRequest) {
   const data = await request.json();
 
   try {
-    likeTweetRequestSchema.parse(data);
+    JoinEventRequestSchema.parse(data);
   } catch (error) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const { tweetId, userHandle } = data as LikeTweetRequest;
+  const { eventId, userHandle } = data as JoinEventRequest;
 
   try {
     await db
-      .insert(likesTable)
+      .insert(joinsTable)
       .values({
-        tweetId,
+        eventId,
         userHandle,
       })
       .onConflictDoNothing()
@@ -92,20 +92,20 @@ export async function DELETE(request: NextRequest) {
   const data = await request.json();
 
   try {
-    likeTweetRequestSchema.parse(data);
+    JoinEventRequestSchema.parse(data);
   } catch (error) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const { tweetId, userHandle } = data as LikeTweetRequest;
+  const { eventId, userHandle } = data as JoinEventRequest;
 
   try {
     await db
-      .delete(likesTable)
+      .delete(joinsTable)
       .where(
         and(
-          eq(likesTable.tweetId, tweetId),
-          eq(likesTable.userHandle, userHandle),
+          eq(joinsTable.eventId, eventId),
+          eq(joinsTable.userHandle, userHandle),
         ),
       )
       .execute();

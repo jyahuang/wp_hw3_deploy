@@ -31,3 +31,32 @@ export function validateUsername(username?: string | null) {
   if (!username) return false;
   return /^[a-zA-Z0-9 ]{1,50}$/.test(username);
 }
+
+export function validateEventname(eventname?: string | null) {
+  if (!eventname) return false;
+  return /^[\s\S]{1,50}$/.test(eventname);
+}
+
+export function validateEventtime(starttime?: string | null, endtime?: string | null) {
+  if (!endtime || !starttime) {
+  console.log("Missing start or end time");
+  return false;
+}
+
+  const starttimeTimestamp = new Date(starttime + ":").getTime();
+  const endtimeTimestamp = new Date(endtime + ":").getTime();
+  if (isNaN(starttimeTimestamp) || isNaN(endtimeTimestamp)) {
+    console.log("Invalid start or end time");
+    return false;
+  }
+
+  if (endtimeTimestamp <= starttimeTimestamp) {
+    console.log("End time is before start time");
+    return false;
+  }
+  if (endtimeTimestamp - starttimeTimestamp > 7 * 24 * 60 * 60 * 1000) {
+    console.log("Event duration is too long");
+    return false;
+  }
+  return true;
+}

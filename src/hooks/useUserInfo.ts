@@ -9,6 +9,7 @@ export default function useUserInfo() {
   const searchParams = useSearchParams();
   const username = useMemo(() => searchParams.get("username"), [searchParams]);
   const handle = useMemo(() => searchParams.get("handle"), [searchParams]);
+  // const searchTerm = useMemo(() => searchParams.get("searchTerm"), [searchParams]);
   const avatarURL = useMemo(() => getAvatar(username), [username]);
 
   return {

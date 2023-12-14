@@ -8,10 +8,12 @@ import { cn } from "@/lib/utils";
 
 type GrowingTextareaProps = {
   wrapperClassName?: string;
+  disabled?: boolean;
   className?: string;
   placeholder?: string;
   value?: string;
   onChange?: (value: string) => void;
+  onKeyPress?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
 };
 
 // this component implements a css hack that allows the textarea to grow with its content
@@ -23,7 +25,7 @@ type GrowingTextareaProps = {
 // for more information, please refer to the following link
 // https://react.dev/reference/react/forwardRef
 const GrowingTextarea = forwardRef<HTMLTextAreaElement, GrowingTextareaProps>(
-  ({ className, wrapperClassName, placeholder, value, onChange }, ref) => {
+  ({ wrapperClassName, disabled, className, placeholder, value, onChange,  onKeyPress }, ref) => {
     return (
       <div
         className={cn(
@@ -43,9 +45,10 @@ const GrowingTextarea = forwardRef<HTMLTextAreaElement, GrowingTextareaProps>(
         <textarea
           className={cn(
             className,
-            "resize-none overflow-hidden",
+            "resize-none break-words ",
             "col-span-1 col-start-1 row-span-1 row-start-1",
           )}
+          disabled={disabled}
           placeholder={placeholder}
           value={value}
           onInput={(e) => {
@@ -57,6 +60,7 @@ const GrowingTextarea = forwardRef<HTMLTextAreaElement, GrowingTextareaProps>(
           }}
           onChange={(e) => onChange?.(e.target.value)}
           ref={ref}
+          onKeyDown={onKeyPress}
         ></textarea>
       </div>
     );

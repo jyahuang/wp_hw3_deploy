@@ -9,11 +9,11 @@ export default function useTweet() {
   const postTweet = async ({
     handle,
     content,
-    replyToTweetId,
+    replyToEventId,
   }: {
     handle: string;
     content: string;
-    replyToTweetId?: number;
+    replyToEventId: number;
   }) => {
     setLoading(true);
 
@@ -22,7 +22,7 @@ export default function useTweet() {
       body: JSON.stringify({
         handle,
         content,
-        replyToTweetId,
+        replyToEventId,
       }),
     });
 

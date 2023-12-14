@@ -2,24 +2,24 @@ import { useState } from "react";
 
 import { useRouter } from "next/navigation";
 
-export default function useLike() {
+export default function useJoin() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const likeTweet = async ({
-    tweetId,
+  const joinEvent = async ({
+    eventId,
     userHandle,
   }: {
-    tweetId: number;
+    eventId: number;
     userHandle: string;
   }) => {
     if (loading) return;
     setLoading(true);
 
-    const res = await fetch("/api/likes", {
+    const res = await fetch("/api/joins", {
       method: "POST",
       body: JSON.stringify({
-        tweetId,
+        eventId,
         userHandle,
       }),
     });
@@ -33,20 +33,20 @@ export default function useLike() {
     setLoading(false);
   };
 
-  const unlikeTweet = async ({
-    tweetId,
+  const nojoinEvent = async ({
+    eventId,
     userHandle,
   }: {
-    tweetId: number;
+    eventId: number;
     userHandle: string;
   }) => {
     if (loading) return;
 
     setLoading(true);
-    const res = await fetch("/api/likes", {
+    const res = await fetch("/api/joins", {
       method: "DELETE",
       body: JSON.stringify({
-        tweetId,
+        eventId,
         userHandle,
       }),
     });
@@ -61,8 +61,8 @@ export default function useLike() {
   };
 
   return {
-    likeTweet,
-    unlikeTweet,
+    joinEvent,
+    nojoinEvent,
     loading,
   };
 }

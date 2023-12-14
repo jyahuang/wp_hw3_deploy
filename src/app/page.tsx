@@ -1,16 +1,19 @@
-import { eq, desc, isNull, sql } from "drizzle-orm";
+import { eq, desc, sql, like } from "drizzle-orm";
 
 import NameDialog from "@/components/NameDialog";
-import Tweet from "@/components/Tweet";
-import TweetInput from "@/components/TweetInput";
+import Event from "@/components/Event";
+import NewEventButton from "@/components/NewEventButton";
+import SearchBar from "@/components/SearchBar";
+// import TweetInput from "@/components/TweetInput";
 import { Separator } from "@/components/ui/separator";
 import { db } from "@/db";
-import { likesTable, tweetsTable, usersTable } from "@/db/schema";
+import { joinsTable, eventsTable, usersTable } from "@/db/schema";
 
 type HomePageProps = {
   searchParams: {
     username?: string;
     handle?: string;
+    searchTerm?: string;
   };
 };
 
@@ -23,7 +26,7 @@ type HomePageProps = {
 // any where. There are already libraries that use react to render to the terminal,
 // email, PDFs, native mobile apps, 3D objects and even videos.
 export default async function Home({
-  searchParams: { username, handle },
+  searchParams: { username, handle, searchTerm },
 }: HomePageProps) {
   // read the username and handle from the query params and insert the user
   // if needed.
@@ -72,21 +75,22 @@ export default async function Home({
   //   FROM likes
   //   GROUP BY tweet_id
   // )
-  const likesSubquery = db.$with("likes_count").as(
+  const joinsSubquery = db.$with("joins_count").as(
     db
       .select({
-        tweetId: likesTable.tweetId,
+        eventId: joinsTable.eventId,
         // some times we need to do some custom logic in sql
         // although drizzle-orm is very powerful, it doesn't support every possible
         // SQL query. In these cases, we can use the sql template literal tag
         // to write raw SQL queries.
         // read more about it here: https://orm.drizzle.team/docs/sql
-        likes: sql<number | null>`count(*)`.mapWith(Number).as("likes"),
+        joins: sql<number | null>`count(*)`.mapWith(Number).as("joins"),
       })
-      .from(likesTable)
-      .groupBy(likesTable.tweetId),
+      .from(joinsTable)
+      .groupBy(joinsTable.eventId),
   );
 
+  // seartch bar!!!
   // This subquery generates the following SQL:
   // WITH liked AS (
   //  SELECT
@@ -95,65 +99,71 @@ export default async function Home({
   //   FROM likes
   //   WHERE user_handle = {handle}
   //  )
-  const likedSubquery = db.$with("liked").as(
+  const joinedSubquery = db.$with("joined").as(
     db
       .select({
-        tweetId: likesTable.tweetId,
+        eventId: joinsTable.eventId,
         // this is a way to make a boolean column (kind of) in SQL
         // so when this column is joined with the tweets table, we will
-        // get a constant 1 if the user liked the tweet, and null otherwise
+        // get a constant 1 if the user joined the event, and null otherwise
         // we can then use the mapWith(Boolean) function to convert the
         // constant 1 to true, and null to false
-        liked: sql<number>`1`.mapWith(Boolean).as("liked"),
+        joined: sql<number>`1`.mapWith(Boolean).as("joined"),
       })
-      .from(likesTable)
-      .where(eq(likesTable.userHandle, handle ?? "")),
+      .from(joinsTable)
+      .where(eq(joinsTable.userHandle, handle ?? "")),
   );
 
-  const tweets = await db
-    .with(likesSubquery, likedSubquery)
+  const events = await db
+    .with(joinsSubquery, joinedSubquery)
     .select({
-      id: tweetsTable.id,
-      content: tweetsTable.content,
+      id: eventsTable.id,
+      eventname: eventsTable.eventname,
       username: usersTable.displayName,
       handle: usersTable.handle,
-      likes: likesSubquery.likes,
-      createdAt: tweetsTable.createdAt,
-      liked: likedSubquery.liked,
+      joins: joinsSubquery.joins,
+      joined: joinedSubquery.joined,
+      createdAt: eventsTable.createdAt,
     })
-    .from(tweetsTable)
-    .where(isNull(tweetsTable.replyToTweetId))
-    .orderBy(desc(tweetsTable.createdAt))
+    .from(eventsTable)
+    // .where(isNull(eventtsTable.replyToTweetId))
+    .orderBy(desc(eventsTable.createdAt))
     // JOIN is by far the most powerful feature of relational databases
     // it allows us to combine data from multiple tables into a single query
     // read more about it here: https://orm.drizzle.team/docs/select#join
     // or watch this video:
     // https://planetscale.com/learn/courses/mysql-for-developers/queries/an-overview-of-joins
-    .innerJoin(usersTable, eq(tweetsTable.userHandle, usersTable.handle))
-    .leftJoin(likesSubquery, eq(tweetsTable.id, likesSubquery.tweetId))
-    .leftJoin(likedSubquery, eq(tweetsTable.id, likedSubquery.tweetId))
+    .innerJoin(usersTable, eq(eventsTable.userHandle, usersTable.handle))
+    .leftJoin(joinsSubquery, eq(eventsTable.id, joinsSubquery.eventId))
+    .leftJoin(joinedSubquery, eq(eventsTable.id, joinedSubquery.eventId))
+    .where(like(eventsTable.eventname, `%${searchTerm}%`))
     .execute();
 
   return (
     <>
-      <div className="flex h-screen w-full max-w-2xl flex-col overflow-scroll pt-2">
-        <h1 className="mb-2 bg-white px-4 text-xl font-bold">Home</h1>
-        <div className="w-full px-4 pt-3">
-          <TweetInput />
+      <div className="flex h-screen w-full flex-col overflow-scroll pt-2">
+        <Separator />
+        <div className="flex items-center grid grid-cols-5 w-full px-4 pt-3 h-16 mb-3 gap-4">
+          <div className="flex justify-start items-left col-span-4">
+            <SearchBar />
+          </div>
+          <div className="flex justify-end col-span-1 mx-2">
+            <NewEventButton />
+          </div>
         </div>
         <Separator />
-        {tweets.map((tweet) => (
-          <Tweet
-            key={tweet.id}
-            id={tweet.id}
+        {events.map((event) => (
+          <Event
+            key={event.id}
+            id={event.id}
             username={username}
             handle={handle}
-            authorName={tweet.username}
-            authorHandle={tweet.handle}
-            content={tweet.content}
-            likes={tweet.likes}
-            liked={tweet.liked}
-            createdAt={tweet.createdAt!}
+            authorName={event.username}
+            authorHandle={event.handle}
+            eventname={event.eventname}
+            joins={event.joins??0}
+            joined={event.joined??false}
+            createdAt={event.createdAt!}
           />
         ))}
       </div>
