@@ -40,7 +40,11 @@ yarn drizzle-kit studio
 
 ## Requirements
 I've already finished all the basic requirements in HW3, if I didn't miss something. But sometimes, it may lag for a while, so please wait for a moment and give the server some time to respond. Enjoy yourself and wish you have a good day! ᕕ ( ᐛ ) ᕗ
+
 基礎要求都有完成，除非我眼睛撇掉沒看見或者它突然死掉QQ
+
 它有些地方可能會卡一下下，給它一點點時間不要放棄它，拜託
+
 如果開不了，麻煩再嘗試一下，我真的花很多時間寫
+
 總之，祝你有個美好的一天！
